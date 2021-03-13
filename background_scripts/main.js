@@ -334,6 +334,7 @@ const BackgroundCommands = {
 
   jumpBackTabList({count}) {
     console.log(`XXX jumpBackTabList with count: ${count}`);
+    console.trace();
     const tabId = BgUtils.tabRecency.getJumpBackTabId({count});
     console.log(`XXX jumpBackTabList going to select tabId: ${tabId}`);
     return selectSpecificTab({id: tabId});
@@ -627,7 +628,10 @@ var portHandlers = {
 };
 
 var sendRequestHandlers = {
-  runBackgroundCommand(request) { return BackgroundCommands[request.registryEntry.command](request); },
+  runBackgroundCommand(request) {
+    console.log(`XXX runBackgroundCommand, request: `, request);
+    return BackgroundCommands[request.registryEntry.command](request);
+  },
   // getCurrentTabUrl is used by the content scripts to get their full URL, because window.location cannot help
   // with Chrome-specific URLs like "view-source:http:..".
   getCurrentTabUrl({tab}) { return tab.url; },

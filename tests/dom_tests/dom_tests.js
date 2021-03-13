@@ -8,7 +8,13 @@ const initializeModeState = () => {
   Mode.reset();
   handlerStack.reset();
   const normalMode = installModes();
-  normalMode.setPassKeys("p");
+  normalMode.setInputRule({
+    pattern: "merged-rule",
+    passKeys: "p",
+    passMappings: [],
+    allowKeys: "",
+    allowMappings: [],
+  });
   normalMode.setKeyMapping({
     m: { options: {}, command: "m" }, // A mapped key.
     p: { options: {}, command: "p" }, // A pass key.
@@ -635,7 +641,7 @@ context("Key mapping",
   }),
 
   should("recognize pass keys", () => {
-    assert.isTrue(this.normalMode.isPassKey("p"));
+    assert.isTrue(this.normalMode.ignoreKeyChar("p"));
   }),
 
   should("not mis-recognize pass keys", () => {

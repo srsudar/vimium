@@ -21,6 +21,93 @@ const ExclusionRegexpCache = {
   }
 };
 
+function mergeKeys(aKeys, bKeys) {
+  aKeys = !!aKeys ? aKeys : '';
+  bKeys = !!bKeys ? bKeys : '';
+
+  console.log(`XXX aKeys: `, aKeys);
+  console.log(`XXX bKeys: `, bKeys);
+
+  let keys = aKeys + bKeys;
+  keys = Utils.distinctCharacters(keys);
+  console.log(`XXX keys: `, keys);
+  // Strip whitespace from all matching passKeys strings, and join them together.
+  const result = keys.split(/\s+/).join("");
+  console.log(`XXX merged result: `, result);
+  return result;
+};
+
+function mergeCommands(as, bs) {
+  as = !!as ? as : [];
+  bs = !!bs ? bs : [];
+
+  const allCmds = as.concat(bs);
+  // unique them.
+  return [...new Set(allCmds)];
+};
+
+// A rule defining whitelist/blacklist behavior on a page.
+class ExclusionRule {
+  // Rules were originally simply a pattern and a 'passKeys' property. This
+  // property was a sequence of latters, eg 'abc', and whether or not a key was
+  // blacklisted on a page, (or 'passed through', presumably), was as simple as
+  // `passKeys.includs(char)`. This made it impossible (afaict) to prevent
+  // mappings like <c-o> (see https://github.com/philc/vimium/issues/2184).
+  //
+  // New rules allow more complex behavior. passKeys still exist in order to
+  // remain backwards compatible. We also introduce passMappings, to allow
+  // things like <c-o> to be ignored.
+  //
+  // allowKeys and allowMappings are the same concepts, but whitelists rather
+  // than blacklists. If <c-o> is set in allowMappings, eg, then it will always
+  // work even if everything else is disabled.
+  constructor(pattern, passKeys, passMappings, allowKeys, allowMappings) {
+    this.pattern = pattern;
+    this.passKeys = mergeKeys(passKeys, '');
+    this.passMappings = passMappings;
+    this.allowKeys = mergeKeys(allowKeys, '');
+    this.allowMappings = allowMappings;
+  }
+
+  isEnabled() {
+    const result = !this.excludeEverything();
+    console.log(`XXX isEnabled: `, result);
+    return result;
+  }
+
+  excludeEverything() {
+    const result = !this.passKeys;
+    console.log(`XXX excludeEverything: `, result);
+    return result;
+  }
+
+  ignoreKeyChar(keyChar) {
+    return this.passKeys.includes(keyChar);
+  }
+
+  ignoreMapping(mapping) {
+    return this.passMappings.includes(mapping);
+  }
+
+  forceIncludeKeyChar(keyChar) {
+    return this.allowKeys.includes(keyChar);
+  }
+
+  forceIncludeMapping(mapping) {
+    return this.allowMappings.includes(mapping);
+  }
+
+  mergeRule(rule) {
+    return new ExclusionRule(
+      'merged-rule',
+      mergeKeys(this.passKeys, rule.passKeys),
+      mergeCommands(this.passMappings, rule.passMappings),
+      mergeKeys(this.allowKeys, rule.allowKeys),
+      mergeCommands(this.allowMappings, rule.allowMappings),
+    );
+  }
+}
+
 // The Exclusions class manages the exclusion rule setting.  An exclusion is an object with two attributes:
 // pattern and passKeys.  The exclusion rules are an array of such objects.
 var Exclusions = {
@@ -35,25 +122,41 @@ var Exclusions = {
   getRule(url, rules) {
     if (rules == null)
       rules = this.rules;
-    const matchingRules = rules.filter(r => r.pattern && (url.search(ExclusionRegexpCache.get(r.pattern)) >= 0));
+    const matchingRawRules = rules.filter(r => r.pattern && (url.search(ExclusionRegexpCache.get(r.pattern)) >= 0));
+    const matchingRules = matchingRawRules.map((rawRule) => {
+      return new ExclusionRule(
+        rawRule.pattern,
+        rawRule.passKeys,
+        [],
+        '',
+        [],
+      );
+    });
+    console.log(`XXX getRule for url: ${url}`);
+    console.log(`XXX getRule for url found [${matchingRules.length}] rules`);
     // An absolute exclusion rule (one with no passKeys) takes priority.
-    for (let rule of matchingRules)
-      if (!rule.passKeys)
+    let mergedRule = null;
+    for (let rule of matchingRules) {
+      if (!mergedRule) {
+        mergedRule = rule;
+      } else {
+        mergedRule = mergedRule.mergeRule(rule);
+      }
+      if (rule.excludeEverything()) {
+        // TODO: we'll need to change this so we can block everything EXCEPT.
         return rule;
-    // Strip whitespace from all matching passKeys strings, and join them together.
-    const passKeys = matchingRules.map(r => r.passKeys.split(/\s+/).join("")).join("");
-    // passKeys = (rule.passKeys.split(/\s+/).join "" for rule in matchingRules).join ""
-    if (matchingRules.length > 0)
-      return {passKeys: Utils.distinctCharacters(passKeys)};
-    else
-      return null;
+      }
+    }
+    // Safe to return null if no rules match.
+    return mergedRule;
   },
 
   isEnabledForUrl(url) {
     const rule = Exclusions.getRule(url);
     return {
-      isEnabledForUrl: !rule || (rule.passKeys.length > 0),
-      passKeys: rule ? rule.passKeys : ""
+      isEnabledForUrl: !rule || rule.isEnabled(),
+      passKeys: rule ? rule.passKeys : "",
+      rule: rule,
     };
   },
 

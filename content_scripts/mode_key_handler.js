@@ -13,7 +13,11 @@
 
 class KeyHandlerMode extends Mode {
   setKeyMapping(keyMapping) { this.keyMapping = keyMapping; this.reset(); }
-  setPassKeys(passKeys) { this.passKeys = passKeys; this.reset(); }
+  setInputRule(rule) {
+    console.log(`XXX setting inputRule: `, rule);
+    this.rule = rule;
+    this.reset();
+  }
 
   // Only for tests.
   setCommandHandler(commandHandler) {
@@ -77,28 +81,34 @@ class KeyHandlerMode extends Mode {
 
   // This tests whether there is a mapping of keyChar in the current key state (and accounts for pass keys).
   isMappedKey(keyChar) {
+    console.log(`XXX isMappedKey: `, keyChar);
+    const mappingIntermediary = ((this.keyState.filter((mapping) => keyChar in mapping)));
+    console.log(`XXX mappingIntermediary: `, mappingIntermediary);
+    console.log(`XXX this.ignoreKeyChar(keyChar): `, this.ignoreKeyChar(keyChar));
     // TODO(philc): tweak the generated js.
-    return ((this.keyState.filter((mapping) => keyChar in mapping))[0] != null) && !this.isPassKey(keyChar);
+    const result = ((this.keyState.filter((mapping) => keyChar in mapping))[0] != null) && !this.ignoreKeyChar(keyChar);
+    console.log(`XXX isMappedKey: `, result);
+    return result;
   }
 
   // This tests whether keyChar is a digit (and accounts for pass keys).
   isCountKey(keyChar) {
     return keyChar
       && ((this.countPrefix > 0 ? '0' : '1') <= keyChar && keyChar <= '9')
-      && !this.isPassKey(keyChar);
+      && !this.ignoreKeyChar(keyChar);
   }
 
   // Keystrokes are *never* considered pass keys if the user has begun entering a command.  So, for example, if
   // 't' is a passKey, then the "t"-s of 'gt' and '99t' are neverthless handled as regular keys.
-  isPassKey(keyChar) {
+  ignoreKeyChar(keyChar) {
     // Find all *continuation* mappings for keyChar in the current key state (i.e. not the full key mapping).
     const mappings = (this.keyState.filter((mapping) => keyChar in mapping && (mapping !== this.keyMapping)));
     // If there are no continuation mappings, and there's no count prefix, and keyChar is a pass key, then
     // it's a pass key.
     return mappings.length == 0
       && this.countPrefix == 0
-      && this.passKeys
-      && this.passKeys.includes(keyChar);
+      && this.rule
+      && this.rule.passKeys.includes(keyChar);
   }
 
   isInResetState() {
@@ -106,6 +116,7 @@ class KeyHandlerMode extends Mode {
   }
 
   handleKeyChar(keyChar) {
+    console.log(`XXX handleKeyChar: `, keyChar);
     bgLog(`handle key ${keyChar} (${this.name})`);
     // A count prefix applies only so long a keyChar is mapped in @keyState[0]; e.g. 7gj should be 1j.
     if (!(keyChar in this.keyState[0]))
@@ -115,6 +126,8 @@ class KeyHandlerMode extends Mode {
     const state = (this.keyState.filter((mapping) => keyChar in mapping).map((mapping) => mapping[keyChar]));
     state.push(this.keyMapping);
     this.keyState = state;
+
+    console.log(`XXX this.keyState: `, this.keyState);
 
     if (this.keyState[0].command != null) {
       const command = this.keyState[0];

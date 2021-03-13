@@ -33,6 +33,7 @@ class TabRecency {
   }
 
   getJumpBackTabId({count}) {
+    debugger;
     let backTabId = -1;
     if (!this.jumpList) {
       // getTabsByRecency might not include the current tab, eg if it was just
@@ -46,12 +47,14 @@ class TabRecency {
       this.jumpList = new TabJumpList(tabs);
     }
     console.log(`XXX jumpList not null`);
+    debugger;
     backTabId = this.jumpList.getJumpBackTabId({count});
     return backTabId === -1 ? this.current : backTabId;
   }
 
   getJumpForwardTabId({count}) {
     let forwardTabId = -1;
+    debugger;
     if (this.jumpList) {
       console.log(`XXX jumpList null`);
       forwardTabId = this.jumpList.getJumpForwardTabId({count});
