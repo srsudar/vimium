@@ -332,6 +332,20 @@ const BackgroundCommands = {
       return selectSpecificTab({id: tabIds[(count-1) % tabIds.length]});
   },
 
+  jumpBackTabList({count}) {
+    console.log(`XXX jumpBackTabList with count: ${count}`);
+    const tabId = BgUtils.tabRecency.getJumpBackTabId({count});
+    console.log(`XXX jumpBackTabList going to select tabId: ${tabId}`);
+    return selectSpecificTab({id: tabId});
+  },
+
+  jumpForwardTabList({count}) {
+    console.log(`XXX jumpForwardTabList with count: ${count}`);
+    const tabId = BgUtils.tabRecency.getJumpForwardTabId({count});
+    console.log(`XXX jumpForwardTabList going to select tabId: ${tabId}`);
+    return selectSpecificTab({id: tabId});
+  },
+
   reload({count, tabId, registryEntry, tab: {windowId}}){
     const bypassCache = registryEntry.options.hard != null ? registryEntry.options.hard : false;
     return chrome.tabs.query({windowId}, function(tabs) {
