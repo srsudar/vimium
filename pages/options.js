@@ -112,13 +112,7 @@ class ExclusionRulesOption extends Option {
   addRule(pattern) {
     if (pattern == null)
       pattern = "";
-    const element = this.appendRule({
-      pattern,
-      passKeys: "",
-      passCommands: [],
-      allowKeys: "",
-      allowCommands: [],
-    });
+    const element = this.appendRule({ pattern, passKeys: "" });
     this.getPattern(element).focus();
     const exclusionScrollBox = $("exclusionScrollBox");
     exclusionScrollBox.scrollTop = exclusionScrollBox.scrollHeight;
@@ -140,43 +134,9 @@ class ExclusionRulesOption extends Option {
     const content = document.querySelector('#exclusionRuleTemplate').content;
     const row = document.importNode(content, true);
 
-    // Note that, in theory, a single rule might have multiple values set on it.
-    // Indeed, in the code, you have passKeys and allowKeys both present and set
-    // on the same object. In the storage layer, however, and to simplify
-    // presentation to the user, this is not allowed. So we will stop as soon as
-    // we find the first directiveType.
-    let directiveType = 'passKeys';
-    let value = '';
-    if (rule.passKeys && rule.passKeys.length > 0) {
-      directiveType = 'passKeys';
-      value = rule.passKeys;
-    }
-    if (rule.passCommands && rule.passCommands.length > 0) {
-      if (directiveType) console.error('double displaying rule: ', rule);
-      directiveType = 'passCommands';
-      value = this.commandsToString(rule.passCommands);
-    }
-    if (rule.allowKeys && rule.allowKeys.length > 0) {
-      if (directiveType) console.error('double displaying rule: ', rule);
-      directiveType = 'allowKeys';
-      value = rule.allowKeys;
-    }
-    if (rule.allowCommands && rule.allowCommands.length > 0) {
-      if (directiveType) console.error('double displaying rule: ', rule);
-      directiveType = 'allowCommands';
-      value = this.commandsToString(rule.allowCommands);
-    }
-
-    for (let field of ["pattern", "directiveType", "passKeys"]) {
+    for (let field of ["pattern", "passKeys"]) {
       element = row.querySelector(`.${field}`);
-      if (field === "pattern") {
-        element.value = rule.pattern;
-      } else if (field === "directiveType") {
-        element.value = directiveType;
-      } else {
-        // passKeys
-        element.value = value;
-      }
+      element.value = rule[field];
       for (let event of [ "input", "change" ])
         element.addEventListener(event, this.onUpdated);
     }
@@ -191,37 +151,17 @@ class ExclusionRulesOption extends Option {
     return this.element.children[this.element.children.length-1];
   }
 
-  // "<c-o>, <m-i>" -> ["<c-o>", "<m-i>"]
-  stringToCommands(str) {
-    return str.split(",").map(el => el.trim());
-  }
-
-  // ["<c-o>", "<m-i>"] -> "<c-o>, <m-i>"
-  commandsToString(cmds) {
-    return cmds.join(", ");
-  }
-
   readValueFromElement() {
     const rules =
-      Array.from(this.element.getElementsByClassName("exclusionRuleTemplateInstance")).map((element) => {
-        const directiveType = this.getDirectiveType(element).value;
-        const enteredValue = this.getPassKeys(element).value.trim();
-        const rule = {
-          pattern: this.getPattern(element).value.trim(),
-          passKeys: directiveType === "passKeys" ? enteredValue : "",
-          passCommands: directiveType === "passCommands" ? this.stringToCommands(enteredValue) : [],
-          allowKeys: directiveType === "allowKeys" ? enteredValue : "",
-          allowCommands: directiveType === "allowCommands" ? this.stringToCommands(enteredValue) : [],
-        };
-        console.log(`XXX read rule: `, rule);
-        return rule;
-      });
+      Array.from(this.element.getElementsByClassName("exclusionRuleTemplateInstance")).map((element) => ({
+        pattern: this.getPattern(element).value.trim(),
+        passKeys: this.getPassKeys(element).value.trim()
+      }));
     return rules.filter(rule => rule.pattern);
   }
 
   // Accessors for the three main sub-elements of an "exclusionRuleTemplateInstance".
   getPattern(element) { return element.querySelector(".pattern"); }
-  getDirectiveType(element) { return element.querySelector(".directiveType"); }
   getPassKeys(element) { return element.querySelector(".passKeys"); }
   getRemoveButton(element) { return element.querySelector(".exclusionRemoveButton"); }
 }

@@ -183,7 +183,6 @@ const initializePreDomReady = function() {
     frameFocused() {}, // A frame has received the focus; we don't care here (UI components handle this).
     checkEnabledAfterURLChange,
     runInTopFrame({sourceFrameId, registryEntry}) {
-      console.log(`XXX runInTopFrame: registryEntry: `, registryEntry);
       if (DomUtils.isTopFrame())
         return NormalModeCommands[registryEntry.command](sourceFrameId, registryEntry);
     },
@@ -193,17 +192,13 @@ const initializePreDomReady = function() {
   };
 
   chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-    console.log(`XXX vimium_frontend got message: `, request);
     request.isTrusted = true;
     // Some requests intended for the background page are delivered to the options page too; ignore them.
     if (!request.handler || !!request.name) {
       // Some request are handled elsewhere; ignore them too.
-      if (request.name !== "userIsInteractingWithThePage") {
-        if (isEnabledForUrl || ["checkEnabledAfterURLChange", "runInTopFrame"].includes(request.name)) {
-          console.log(`XXX onMessage.addListenger, request: `, request);
+      if (request.name !== "userIsInteractingWithThePage")
+        if (isEnabledForUrl || ["checkEnabledAfterURLChange", "runInTopFrame"].includes(request.name))
           requestHandlers[request.name](request, sender, sendResponse);
-        }
-      }
     }
     // Ensure that the sendResponse callback is freed.
     return false;
@@ -425,13 +420,12 @@ root.lastFocusedInput = (function() {
 // the page icon.
 var checkIfEnabledForUrl = (function() {
   Frame.addEventListener("isEnabledForUrl", function(response) {
-    console.log(`XXX isEnabledForUrl listener, response: `, response);
-    let frameIsFocused, isFirefox, passKeys, rule;
-    ({isEnabledForUrl, passKeys, rule, frameIsFocused, isFirefox} = response);
+    let frameIsFocused, isFirefox, passKeys;
+    ({isEnabledForUrl, passKeys, frameIsFocused, isFirefox} = response);
     Utils.isFirefox = () => isFirefox;
     if (!normalMode)
       installModes();
-    normalMode.setInputRule(rule);
+    normalMode.setPassKeys(passKeys);
     // Hide the HUD if we're not enabled.
     if (!isEnabledForUrl)
       return HUD.hide(true, false);

@@ -21,7 +21,6 @@ class NormalMode extends KeyHandlerMode {
   }
 
   commandHandler({command: registryEntry, count}) {
-    console.log(`XXX mode_normal.commandHandler, command: `, registryEntry);
     count *= registryEntry.options.count != null ? registryEntry.options.count : 1;
 
     if (registryEntry.noRepeat)
@@ -40,10 +39,8 @@ class NormalMode extends KeyHandlerMode {
       chrome.runtime.sendMessage({
         handler: "sendMessageToFrames", message: {name: "runInTopFrame", sourceFrameId, registryEntry}});
     } else if (registryEntry.background) {
-      console.log(`XXX mode_normal.commandHandler, registryEntry`);
       chrome.runtime.sendMessage({handler: "runBackgroundCommand", registryEntry, count});
     } else {
-      console.log(`XXX mode_normal.commandHandler, NormalModeCommands: `);
       NormalModeCommands[registryEntry.command](count, {registryEntry});
     }
   }
@@ -170,7 +167,6 @@ var NormalModeCommands = {
   showHelp(sourceFrameId) { return HelpDialog.toggle({sourceFrameId, showAllCommandDetails: false}); },
 
   passNextKey(count, options) {
-    console.log(`XXX passNextKey`);
     // TODO(philc): OK to remove return statement?
     if (options.registryEntry.options.normal) {
       return enterNormalMode(count);
