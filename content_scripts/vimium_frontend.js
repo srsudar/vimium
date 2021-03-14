@@ -189,43 +189,7 @@ const initializePreDomReady = function() {
     },
     linkHintsMessage(request) { return HintCoordinator[request.messageType](request); },
     showMessage(request) { return HUD.showForDuration(request.message, 2000); },
-    executeScript(request) { return DomUtils.injectUserScript(request.script); },
-
-    // vomnibarActivate() {
-    //   NormalModeCommands["Vomnibar.activate"]({
-    //     command: "Vomnibar.activate",
-    //     optionList: [],
-    //     topFrame: true,
-    //   });
-    // },
-    // vomnibarActivateInNewTab() {
-    //   NormalModeCommands["Vomnibar.activateInNewTab"]({
-    //     command: "Vomnibar.activateInNewTab",
-    //     optionList: [],
-    //     topFrame: true,
-    //   });
-    // },
-    // vomnibarActivateTabSelection() {
-    //   NormalModeCommands["Vomnibar.activateTabSelection"]({
-    //     command: "Vomnibar.activateTabSelection",
-    //     optionList: [],
-    //     topFrame: true,
-    //   });
-    // },
-    // vomnibarActivateBookmarks() {
-    //   NormalModeCommands["Vomnibar.activateBookmarks"]({
-    //     command: "Vomnibar.activateBookmarks",
-    //     optionList: [],
-    //     topFrame: true,
-    //   });
-    // },
-    // vomnibarActivateBookmarksInNewTab() {
-    //   NormalModeCommands["Vomnibar.activateBookmarksInNewTab"]({
-    //     command: "Vomnibar.activateBookmarksInNewTab",
-    //     optionList: [],
-    //     topFrame: true,
-    //   });
-    // },
+    executeScript(request) { return DomUtils.injectUserScript(request.script); }
   };
 
   chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
