@@ -365,6 +365,63 @@ const BackgroundCommands = {
   }
 };
 
+chrome.commands.onCommand.addListener(function(command) {
+  console.log(`XXX onCommand listener: `, command);
+
+  const sendCommandToCurrentTab = function(requestName) {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs[0]) {
+        const tabId = tabs[0].id;
+        chrome.tabs.sendMessage(tabId, {
+          name: 'runInTopFrame',
+          registryEntry: {
+            command: requestName,
+            optionList: [],
+            // topFrame: true,
+          },
+        });
+      }
+    });
+  };
+
+  switch (command) {
+    case "jump-back-tab":
+      console.log(`XXX got jump-back-tab`);
+      BackgroundCommands.jumpBackTabList({count: 1});
+      break;
+    case "jump-forward-tab":
+      console.log(`XXX got jump-forward-tab`);
+      BackgroundCommands.jumpForwardTabList({count: 1});
+      break;
+    case "open-vomnibox":
+      sendCommandToCurrentTab("Vomnibar.activate");
+      break;
+    case "open-vomnibox-new-tab":
+      sendCommandToCurrentTab("Vomnibar.activateInNewTab");
+      break;
+    case "open-vomnibox-tab":
+      sendCommandToCurrentTab("Vomnibar.activateTabSelection");
+      break;
+    case "open-vomnibox-bookmark":
+      sendCommandToCurrentTab("Vomnibar.activateBookmarks");
+      break;
+    case "open-vomnibox-bookmark-new-tab":
+      sendCommandToCurrentTab("Vomnibar.activateBookmarksInNewTab");
+      break;
+    case "switch-to-previous-tab":
+      console.log(`XXX got switch-to-previous-tab`);
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (tabs[0]) {
+          const tabId = tabs[0].id;
+          BackgroundCommands.visitPreviousTab({count: 1, tab: { id: tabId} });
+        }
+      });
+      break;
+    default:
+      console.error('unrecognized command: ', command);
+  }
+});
+
 var forCountTabs = (count, currentTab, callback) => chrome.tabs.query({currentWindow: true}, function(tabs) {
   const activeTabIndex = currentTab.index;
   const startTabIndex = Math.max(0, Math.min(activeTabIndex, tabs.length - count));

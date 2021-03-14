@@ -189,19 +189,57 @@ const initializePreDomReady = function() {
     },
     linkHintsMessage(request) { return HintCoordinator[request.messageType](request); },
     showMessage(request) { return HUD.showForDuration(request.message, 2000); },
-    executeScript(request) { return DomUtils.injectUserScript(request.script); }
+    executeScript(request) { return DomUtils.injectUserScript(request.script); },
+
+    // vomnibarActivate() {
+    //   NormalModeCommands["Vomnibar.activate"]({
+    //     command: "Vomnibar.activate",
+    //     optionList: [],
+    //     topFrame: true,
+    //   });
+    // },
+    // vomnibarActivateInNewTab() {
+    //   NormalModeCommands["Vomnibar.activateInNewTab"]({
+    //     command: "Vomnibar.activateInNewTab",
+    //     optionList: [],
+    //     topFrame: true,
+    //   });
+    // },
+    // vomnibarActivateTabSelection() {
+    //   NormalModeCommands["Vomnibar.activateTabSelection"]({
+    //     command: "Vomnibar.activateTabSelection",
+    //     optionList: [],
+    //     topFrame: true,
+    //   });
+    // },
+    // vomnibarActivateBookmarks() {
+    //   NormalModeCommands["Vomnibar.activateBookmarks"]({
+    //     command: "Vomnibar.activateBookmarks",
+    //     optionList: [],
+    //     topFrame: true,
+    //   });
+    // },
+    // vomnibarActivateBookmarksInNewTab() {
+    //   NormalModeCommands["Vomnibar.activateBookmarksInNewTab"]({
+    //     command: "Vomnibar.activateBookmarksInNewTab",
+    //     optionList: [],
+    //     topFrame: true,
+    //   });
+    // },
   };
 
   chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+    console.log(`XXX vimium_frontend got message: `, request);
     request.isTrusted = true;
     // Some requests intended for the background page are delivered to the options page too; ignore them.
     if (!request.handler || !!request.name) {
       // Some request are handled elsewhere; ignore them too.
-      if (request.name !== "userIsInteractingWithThePage")
+      if (request.name !== "userIsInteractingWithThePage") {
         if (isEnabledForUrl || ["checkEnabledAfterURLChange", "runInTopFrame"].includes(request.name)) {
           console.log(`XXX onMessage.addListenger, request: `, request);
           requestHandlers[request.name](request, sender, sendResponse);
         }
+      }
     }
     // Ensure that the sendResponse callback is freed.
     return false;

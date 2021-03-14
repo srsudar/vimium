@@ -21,7 +21,7 @@ class NormalMode extends KeyHandlerMode {
   }
 
   commandHandler({command: registryEntry, count}) {
-    console.log(`XXX mode_normal.commandHandler, command: `);
+    console.log(`XXX mode_normal.commandHandler, command: `, registryEntry);
     count *= registryEntry.options.count != null ? registryEntry.options.count : 1;
 
     if (registryEntry.noRepeat)

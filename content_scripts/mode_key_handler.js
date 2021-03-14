@@ -81,7 +81,6 @@ class KeyHandlerMode extends Mode {
 
   // This tests whether there is a mapping of keyChar in the current key state (and accounts for pass keys).
   isMappedKey(keyChar) {
-    console.log(`XXX isMappedKey: `, keyChar);
     const mappingIntermediary = ((this.keyState.filter((mapping) => keyChar in mapping)));
     console.log(`XXX mappingIntermediary: `, mappingIntermediary);
     console.log(`XXX this.ignoreKeyChar(keyChar): `, this.ignoreKeyChar(keyChar));
