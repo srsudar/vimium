@@ -333,17 +333,12 @@ const BackgroundCommands = {
   },
 
   jumpBackTabList({count}) {
-    console.log(`XXX jumpBackTabList with count: ${count}`);
-    console.trace();
     const tabId = BgUtils.tabRecency.getJumpBackTabId({count});
-    console.log(`XXX jumpBackTabList going to select tabId: ${tabId}`);
     return selectSpecificTab({id: tabId});
   },
 
   jumpForwardTabList({count}) {
-    console.log(`XXX jumpForwardTabList with count: ${count}`);
     const tabId = BgUtils.tabRecency.getJumpForwardTabId({count});
-    console.log(`XXX jumpForwardTabList going to select tabId: ${tabId}`);
     return selectSpecificTab({id: tabId});
   },
 
@@ -366,7 +361,6 @@ const BackgroundCommands = {
 };
 
 chrome.commands.onCommand.addListener(function(command) {
-  console.log(`XXX onCommand listener: `, command);
 
   const sendCommandToCurrentTab = function(requestName) {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -377,7 +371,6 @@ chrome.commands.onCommand.addListener(function(command) {
           registryEntry: {
             command: requestName,
             optionList: [],
-            // topFrame: true,
           },
         });
       }
@@ -386,11 +379,9 @@ chrome.commands.onCommand.addListener(function(command) {
 
   switch (command) {
     case "jump-back-tab":
-      console.log(`XXX got jump-back-tab`);
       BackgroundCommands.jumpBackTabList({count: 1});
       break;
     case "jump-forward-tab":
-      console.log(`XXX got jump-forward-tab`);
       BackgroundCommands.jumpForwardTabList({count: 1});
       break;
     case "open-vomnibox":
@@ -409,7 +400,6 @@ chrome.commands.onCommand.addListener(function(command) {
       sendCommandToCurrentTab("Vomnibar.activateBookmarksInNewTab");
       break;
     case "switch-to-previous-tab":
-      console.log(`XXX got switch-to-previous-tab`);
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         if (tabs[0]) {
           const tabId = tabs[0].id;
@@ -686,7 +676,6 @@ var portHandlers = {
 
 var sendRequestHandlers = {
   runBackgroundCommand(request) {
-    console.log(`XXX runBackgroundCommand, request: `, request);
     return BackgroundCommands[request.registryEntry.command](request);
   },
   // getCurrentTabUrl is used by the content scripts to get their full URL, because window.location cannot help

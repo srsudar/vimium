@@ -33,7 +33,6 @@ class TabRecency {
   }
 
   getJumpBackTabId({count}) {
-    debugger;
     let backTabId = -1;
     if (!this.jumpList) {
       // getTabsByRecency might not include the current tab, eg if it was just
@@ -46,24 +45,19 @@ class TabRecency {
       }
       this.jumpList = new TabJumpList(tabs);
     }
-    console.log(`XXX jumpList not null`);
-    debugger;
     backTabId = this.jumpList.getJumpBackTabId({count});
     return backTabId === -1 ? this.current : backTabId;
   }
 
   getJumpForwardTabId({count}) {
     let forwardTabId = -1;
-    debugger;
     if (this.jumpList) {
-      console.log(`XXX jumpList null`);
       forwardTabId = this.jumpList.getJumpForwardTabId({count});
     }
     return forwardTabId === -1 ? this.current : forwardTabId;
   }
 
   register(tabId) {
-    console.log(`XXX registering tab: ${tabId}`);
     const currentTime = new Date();
     // Register tabId if it has been visited for at least @timeDelta ms.  Tabs which are visited only for a
     // very-short time (e.g. those passed through with `5J`) aren't registered as visited at all.
@@ -72,19 +66,11 @@ class TabRecency {
     }
 
     if (this.jumpList && !this.jumpList.isCoherent(tabId)) {
-      console.log(`XXX invalidating jumplist`);
       this.jumpList = null;
-    } else {
-      if (!this.jumpList) {
-        console.log(`XXX no jump list`);
-      } else {
-        console.log(`XXX jumplist is coherent: ${this.jumpList.isCoherent(tabId)}`);
-      }
     }
 
     this.current = (this.lastVisited = tabId);
     this.lastVisitedTime = currentTime;
-    console.log(`XXX catch at end of register: `, this.cache);
   }
 
   deregister(tabId) {
@@ -127,7 +113,6 @@ class TabRecency {
 class TabJumpList {
 
   constructor(tabs) {
-    console.log(`XXX creating TabJumpList, tabs: `, tabs);
     this.tabs = tabs;
     this.activeIdx = tabs.length - 1;
     // Tabs can be deleted after a TabJumpList has flattened the tabs into an
@@ -149,7 +134,6 @@ class TabJumpList {
   }
 
   getJumpBackTabId({count = 1}) {
-    console.log(`XXX bgu.getJumpBackTabId, count: ${count}`);
     let candidateIdx = -1;
     let need = count;
     for (let i = this.activeIdx - 1; i >= 0; i--) {
@@ -164,11 +148,8 @@ class TabJumpList {
       }
     }
 
-    console.log(`XXX found one`);
-
     if (candidateIdx === -1) {
       // We're at the oldest tab.
-      console.log(`XXX at oldest tab`);
       return -1;
     }
 
